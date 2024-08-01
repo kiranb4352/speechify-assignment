@@ -1,3 +1,8 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { HoveredElementInfo, useHoveredParagraphCoordinate } from "./hook";
+import { getTopLevelReadableElementsOnPage } from "./parser";
+import { relative } from "path";
+
 // This is a simple play button SVG that you can use in your hover player
 const PlayButton = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -27,4 +32,30 @@ const PlayButton = (props: React.SVGProps<SVGSVGElement>) => (
  * The hover player should contain a play button that when clicked, should play the text of the paragraph
  * This component should make use of the useHoveredParagraphCoordinate hook to get information about the hovered paragraph
  */
-export default function HoverPlayer() {}
+export default function HoverPlayer() {
+  const [elementInfo, setElementInfo] = useState<HoveredElementInfo>();
+  
+
+  useEffect(()=>{
+    // To apply mouse event on top level elements
+    const topLevelElements = getTopLevelReadableElementsOnPage();
+    for(const element of topLevelElements){
+      element.addEventListener('mouseover', function(e: MouseEvent){
+          const elementInfoData = useHoveredParagraphCoordinate([e.target as HTMLElement]);
+          if(elementInfoData){
+            setElementInfo(elementInfoData);
+          }
+      });
+    }
+  }, []);
+  
+  return <>
+  <div style={{
+    position: 'absolute', 
+    left: elementInfo?.left, 
+    top: elementInfo?.top}}>
+    <PlayButton />
+  </div>
+  </>;
+
+}
