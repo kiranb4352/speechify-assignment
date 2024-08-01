@@ -56,6 +56,7 @@ export function useHoveredParagraphCoordinate(
 ): HoveredElementInfo | null {
   
   const hoveredInfoArray:HoveredElementInfo[] = [];
+  console.log(parsedElements);
   for(const element of parsedElements){
     
     const boundBox = getElementBounds(element);
