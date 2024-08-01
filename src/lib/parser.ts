@@ -49,15 +49,15 @@ export function getTopLevelReadableElementsOnPage(): HTMLElement[] {
   
   
   const findTopLevelHtmlElements = (topLevelElement: HTMLElement) =>{
-    if(!topLevelElement.hasChildNodes()){
+    if(topLevelElement.children.length==0){
       // Top level element text content should not be blank
       if(topLevelElement.textContent!=''){
         topLevelElements.push(topLevelElement);
       }
     }else{
       // Recursivly find top level element from the childNode of HtmlElement tag
-      for(const node of topLevelElement.childNodes){
-        findTopLevelHtmlElements(node as HTMLElement);
+      for(const childNode of topLevelElement.children){
+        findTopLevelHtmlElements(childNode as HTMLElement);
       }
     }
   }
