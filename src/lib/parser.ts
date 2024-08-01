@@ -49,19 +49,24 @@ export function getTopLevelReadableElementsOnPage(): HTMLElement[] {
   
   
   const findTopLevelHtmlElements = (topLevelElement: HTMLElement) =>{
-    if(topLevelElement.children.length==0){
-      // Top level element text content should not be blank
-      if(topLevelElement.textContent!=''){
-        topLevelElements.push(topLevelElement);
-      }
-    }else{
-      // Recursivly find top level element from the childNode of HtmlElement tag
-      for(const childNode of topLevelElement.children){
-        findTopLevelHtmlElements(childNode as HTMLElement);
+    // Skipping Script and style tag inside body and also need to identify hidden elements
+    if(!['SCRIPT', 'STYLE'].includes(topLevelElement.nodeName)){
+      if(topLevelElement.children.length==0){
+        
+        // Add element in array if the text is not empty
+        if(topLevelElement.textContent && topLevelElement.textContent.trim()!=''){
+          topLevelElements.push(topLevelElement);  
+        }
+      }else{
+        // Recursivly find top level element from the childNode of HtmlElement tag
+        for(const childNode of topLevelElement.children){
+          findTopLevelHtmlElements(childNode as HTMLElement);
+        }
       }
     }
   }
 
+  // Initial html element should start with body
   findTopLevelHtmlElements(document.body);
   
   return topLevelElements;

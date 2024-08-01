@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { getTopLevelReadableElementsOnPage } from "./parser";
 
 /**
@@ -25,8 +26,13 @@ export function isPointInsideElement(
   coordinate: { x: number; y: number },
   element: HTMLElement
 ): boolean {
+  // get bounding rectagle of element
+  const bounds = element.getBoundingClientRect();
 
-  return false;
+  // Checking x coordinate for left and right boundaries
+  // and y coordinate for top and bottom
+  return (coordinate.x >= bounds.left && coordinate.x <= bounds.right) &&
+        (coordinate.y >= bounds.top && coordinate.y <= bounds.bottom);
 }
 
 /**
@@ -34,8 +40,28 @@ export function isPointInsideElement(
  * We will later use this to size the HTML element that contains the hover player
  */
 export function getLineHeightOfFirstLine(element: HTMLElement): number {
-  // TODO: element.style.lineHeight
-  return 0;
+  let computedLineHeight = 0;
+  let nodeToClone = element;
+  
+  // Checking first child is text or html element, if html element then consider it to clone that rather than current element
+  if(element.firstChild && element.firstChild.nodeName !='#text'){
+    nodeToClone = element.firstChild as HTMLElement;
+  }
+
+  // Cloning element and adding some text to calculate it roughly by adding quickly on end of body
+  const clonedElement = nodeToClone.cloneNode(true) as HTMLElement;
+  clonedElement.textContent = 'Sample text';
+  
+  // Appending to the body
+  document.body.appendChild(clonedElement);
+  
+  // Get fontSize of that element
+  computedLineHeight = parseInt(window.getComputedStyle(clonedElement).fontSize);
+  
+  // Removing from the screen after using it
+  clonedElement.remove();
+
+  return computedLineHeight;
 }
 
 export type HoveredElementInfo = {
@@ -54,22 +80,37 @@ export type HoveredElementInfo = {
 export function useHoveredParagraphCoordinate(
   parsedElements: HTMLElement[]
 ): HoveredElementInfo | null {
+  // Hovered element will stored here on mousemove event
+  const [hoveredElementInfo, setHoveredElementInfo] = useState<HoveredElementInfo | null>(null);
   
-  const hoveredInfoArray:HoveredElementInfo[] = [];
-  
-  for(const element of parsedElements){
+  useEffect(()=>{
+      window.addEventListener('mousemove', (event) => {
+        // We need mouse positions to find right rectangular positons from top elements
+        const x = event.clientX;
+        const y = event.clientY;
+        
+        // Iterating top elements
+        for(const element of parsedElements){
+          const boundBox = getElementBounds(element);
+          
+          // Check x and y position of mouse is inside element or not
+          if (isPointInsideElement({x, y}, element)) {
+            // Setting element as parent element to show Play button on higher level component
+            // Still this logic is rough
+            setHoveredElementInfo({
+              element: element.parentElement? element.parentElement: element as HTMLElement,
+              top: boundBox.top,
+              left: boundBox.left - 40, // Move 40 extra to align and not to overlay on text element
+              heightOfFirstLine: getLineHeightOfFirstLine(element)
+            });
+          }
+        }
+      });
     
-    const boundBox = getElementBounds(element);
-    hoveredInfoArray.push({
-      element: element,
-      top: boundBox.top,
-      left: boundBox.left,
-      heightOfFirstLine: getLineHeightOfFirstLine(element)
-    });
+  }, [parsedElements]);
 
-    break;
-  }
+  
   
 
-  return hoveredInfoArray.length>0?hoveredInfoArray[0]:null;
+  return hoveredElementInfo;
 }
