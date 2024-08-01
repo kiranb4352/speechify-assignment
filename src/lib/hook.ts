@@ -1,3 +1,5 @@
+import { getTopLevelReadableElementsOnPage } from "./parser";
+
 /**
  * Gets bounding boxes for an element. This is implemented for you
  */
@@ -22,13 +24,19 @@ export function getElementBounds(elem: HTMLElement) {
 export function isPointInsideElement(
   coordinate: { x: number; y: number },
   element: HTMLElement
-): boolean {}
+): boolean {
+
+  return false;
+}
 
 /**
  * **TBD:** Implement a function that returns the height of the first line of text in an element
  * We will later use this to size the HTML element that contains the hover player
  */
-export function getLineHeightOfFirstLine(element: HTMLElement): number {}
+export function getLineHeightOfFirstLine(element: HTMLElement): number {
+  // TODO: element.style.lineHeight
+  return 0;
+}
 
 export type HoveredElementInfo = {
   element: HTMLElement;
@@ -45,4 +53,22 @@ export type HoveredElementInfo = {
  */
 export function useHoveredParagraphCoordinate(
   parsedElements: HTMLElement[]
-): HoveredElementInfo | null {}
+): HoveredElementInfo | null {
+  
+  const hoveredInfoArray:HoveredElementInfo[] = [];
+  for(const element of parsedElements){
+    
+    const boundBox = getElementBounds(element);
+    hoveredInfoArray.push({
+      element: element,
+      top: boundBox.top,
+      left: boundBox.left,
+      heightOfFirstLine: getLineHeightOfFirstLine(element)
+    });
+
+    break;
+  }
+  
+
+  return hoveredInfoArray.length>0?hoveredInfoArray[0]:null;
+}
